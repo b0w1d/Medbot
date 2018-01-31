@@ -188,7 +188,7 @@ def get_args_freq_table(options = {})
 end
 
 def get_args_freq_line(options = {})
-  xname = /(?:x|axis|around)*\s*(?::|\-|upon|is|in|on|by|at|for|with|as|\s*)\s*([^\s]+)\s*/i.match(options[:msg])[1] rescue nil
+  xname = /(?:x|axis|around)+\s*(?::|\-|upon|is|in|on|by|at|for|with|as|\s*)\s*([^\s]+)\s*/i.match(options[:msg])[1] rescue nil
   xname = format_label(xname)
   return "If you want to render a line graph, please also tell me which attribute the x-axis will be around. Note that for now only x for date is available." if xname.nil?
   xlabels = []
@@ -208,7 +208,7 @@ def get_args_freq_line(options = {})
 end
 
 def get_args_freq_bar(options = {})
-  xname = /(?:group|bar|categorize|categorized)*\s*(?:by|on|\s*)\s*([^\s]+)\s*/i.match(options[:msg])[1] rescue nil
+  xname = /(?:group|bar|categorize|categorized)+s*(?:by|on|\s*)\s*([^\s]+)\s*/i.match(options[:msg])[1] rescue nil
   xname = format_label(xname)
   return "If you want to render a bar graph, please also tell me which attribute you want to categorize on. Note that for now only grouping by sex or age is available." if xname.nil?
   xlabels = []
