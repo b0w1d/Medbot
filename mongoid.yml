@@ -1,0 +1,11 @@
+development:
+  clients:
+    default:
+      database: test
+      hosts:
+        - localhost:27017
+
+production:
+  clients:
+    default:
+      uri: <%= ENV['MONGOLAB_URI'] %>

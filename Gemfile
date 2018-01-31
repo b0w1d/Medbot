@@ -1,0 +1,17 @@
+source 'https://rubygems.org'
+
+ruby '2.4.2' # '2.3.1'
+
+gem 'sinatra'
+gem 'api-ai-ruby'
+gem 'json'
+gem 'line-bot-api'
+gem 'rest-client'
+gem 'mongoid'
+gem 'bson'
+gem 'database_cleaner', git: 'https://github.com/DatabaseCleaner/database_cleaner.git'
+gem 'tf-idf-similarity'
+gem 'gruff'
+gem 'imgurapi'
+gem 'prawn'
+gem 'prawn-table'
