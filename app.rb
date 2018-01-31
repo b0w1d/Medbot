@@ -348,5 +348,5 @@ post '/callback' do
     end
   end
 
-  "OK"
+  'OK'
 end
