@@ -111,6 +111,7 @@ class Corpus
   end
 
   def get_term_frequency
+    @tcs ||= @corpus.map { |text| Text.new(text).get_term_count }
     @wcs ||= @tcs.map { |tc| tc.values.sum }
     @tc_all ||= get_term_count_all
     @tf ||= Hash.new { |h, k| h[k] = [] } .tap do |tf|
