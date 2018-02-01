@@ -165,7 +165,8 @@ class PieGraph < Graph
     @corpus = Corpus.new(Patient.get_english_contents(@filter))
     tc = @corpus.get_term_count_all
     tf_idf = @corpus.get_tf_idf
-    @args = ['Term count', tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] }]
+    suffix = " with #{@filter.to_s.tr('{:}\"', '').gsub('=>', ': ')}"
+    @args = ["Term count#{suffix}", tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] }]
   end
 
   def render_image(title, records)
@@ -184,7 +185,8 @@ class TableGraph < Graph
     @corpus = Corpus.new(Patient.get_english_contents(@filter))
     tc = @corpus.get_term_count_all
     tf_idf = @corpus.get_tf_idf
-    @args = [[['Words' 'Times']] + tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] }]
+    suffix = " with #{@filter.to_s.tr('{:}\"', '').gsub('=>', ': ')}"
+    @args = [[["Words#{suffix}" 'Times']] + tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] }]
   end
 
   def render_image(records)
@@ -221,7 +223,8 @@ class LineGraph < Graph
     tf = @corpus.get_term_frequency
     tf_idf = @corpus.get_tf_idf
     records = tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(10).map(&:first).map { |t, f| [t, *tf[t]] }
-    @args = ["Term frequency over #{xname}", xlabels, records]
+    suffix = " with #{@filter.to_s.tr('{:}\"', '').gsub('=>', ': ')}"
+    @args = ["Term frequency over #{xname}#{suffix}", xlabels, records]
   end
 
   def render_image(title, xlabels, records)
@@ -263,7 +266,8 @@ class BarGraph < Graph
     tf = @corpus.get_term_frequency
     tf_idf = @corpus.get_tf_idf
     records = tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(10).map(&:first).map { |t, f| [t, *tf[t]] }
-    @args = ["Term frequency over #{xname}", xlabels, records]
+    suffix = " with #{@filter.to_s.tr('{:}\"', '').gsub('=>', ': ')}"
+    @args = ["Term frequency over #{xname}#{suffix}", xlabels, records]
   end
 
   def render_image(title, xlabels, records)
@@ -334,7 +338,6 @@ end
 
 class Processor
   def process_frequency_query
-    @filter = { sex: Parser.parse_sex(@msg), age: Parser.parse_age(@msg) } .compact
     words = @msg.downcase.split(/\W+/)
     return nil if words.none? { |w| w.start_with?('freq') || w.start_with?('tf') }
     {
@@ -353,6 +356,7 @@ class Processor
 
   def process_message(message)
     @msg = message
+    @filter = { sex: Parser.parse_sex(@msg), age: Parser.parse_age(@msg) } .compact
 
     reply_frequency_query ||= process_frequency_query
     return reply_frequency_query unless reply_frequency_query.nil?
@@ -373,8 +377,6 @@ class Processor
   end
 end
 
-$processor = Processor.new
-
 post '/callback' do
   body = request.body.read
 
@@ -390,7 +392,7 @@ post '/callback' do
       case event.type
       when Line::Bot::Event::MessageType::Text
         msg_from_user = event.message['text']
-        reply = $processor.process_message(msg_from_user)
+        reply = Processor.new.process_message(msg_from_user)
         LineBot.client.reply_message(event['replyToken'], Format.normalize_reply(reply))
       when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
         response = line_client.get_message_content(event.message['id'])
