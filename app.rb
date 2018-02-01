@@ -32,10 +32,10 @@ class Patient
     filters[:age] ||= 0..120
     Array.new.tap do |res|
       if filters[:sex] != "female"
-        res += Patient.where(filters.merge({ sex: "male" })).map { |doc| doc.english_content }
+        res << Patient.where(filters.merge({ sex: "male" })).map { |doc| doc.english_content }
       end
       if filters[:sex] != "male"
-        res += Patient.where(filters.merge({ sex: "female" })).map { |doc| doc.english_content }
+        res << Patient.where(filters.merge({ sex: "female" })).map { |doc| doc.english_content }
       end
     end[0]
   end
