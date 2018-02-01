@@ -134,7 +134,7 @@ class Corpus
     end
   end
 
-  def get_tf_idf # NOTE: returns max sum
+  def get_tf_idf
     @tf ||= get_term_frequency
     @te ||= get_term_existence
     @idf = @te.map { |h, k| [h, Math.log(@corpus.size / k)] } .to_h
@@ -151,7 +151,7 @@ end
 class Graph
   attr_accessor :msg, :filter, :corpus, :args, :error
 
-  def self.is_useful?(word:)
+  def is_useful?(word:)
     return 0 if word.size == 1
     return 0 if %w(he his him boy man male she her girl lady female ml dl mmol item).include?(word.downcase)
     /[^a-zA-Z]/.match?(word) ? 0 : 1
