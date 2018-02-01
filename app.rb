@@ -367,7 +367,7 @@ class Processor
     until actions.empty?
       action = actions.shift
       case action
-      when "show_info"; rep_msg = "Filters are: #{$filter_info.values.join(", ")}"
+      when "show_info"; rep_msg = "Filters are: #{@filter.values.join(", ")}"
       when "unknown"; rep_msg = "Did you say: " + msg + ??
       end
     end
