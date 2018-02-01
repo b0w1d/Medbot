@@ -276,7 +276,7 @@ module Parser
     m_key = %w(man male his him himself he boy)
     f_key = %w(woman female her herself she girl)
     mcnt, fcnt = 0, 0
-    s.split(/\W+]/).each do |w|
+    s.split(/\W+/).each do |w|
       mcnt += m_key.include?(w) ? 1 : 0
       fcnt += f_key.include?(w) ? 1 : 0
     end
