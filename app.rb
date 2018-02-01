@@ -333,7 +333,7 @@ module Format
 end
 
 class Processor
-  def process_frequency_query
+  def self.process_frequency_query
     @@filter = { sex: Parser.parse_sex(@@msg), age: Parser.parse_age(@@msg) } .compact
     words = @@msg.downcase.split(/\W+/)
     return nil if words.none? { |w| w.start_with?('freq') || w.start_with?('tf') }
@@ -351,7 +351,7 @@ class Processor
     'If you want to render some graph for term frequency, please specify which kind of graph is desired. Line graph, pie graph, bar graph, and table is available'
   end
 
-  def process_message(message)
+  def self.process_message(message)
     @@msg = message
 
     reply_frequency_query ||= process_frequency_query
