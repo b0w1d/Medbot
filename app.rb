@@ -280,7 +280,9 @@ class BarGraph < Graph
 end
 
 module Parser
-  def self.parse_sex(s)
+  extend self
+
+  def parse_sex(s)
     m_key = %w(man male his him himself he boy)
     f_key = %w(woman female her herself she girl)
     mcnt, fcnt = 0, 0
@@ -291,7 +293,7 @@ module Parser
     mcnt == fcnt ? nil : mcnt > fcnt ? "male" : "female"
   end
 
-  def self.parse_age(s)
+  def parse_age(s)
     age_low, age_high = nil, nil
     [
       /(\d+)[^\d]{1,20}(\d+)[^\d]{1,20}year/i, /(\d+)[^\d]{1,20}year/i,
@@ -389,6 +391,7 @@ post '/callback' do
       when Line::Bot::Event::MessageType::Text
         msg_from_user = event.message['text']
         reply = Processor.new.process_message(msg_from_user)
+        LineBot.client.reply_message(event['replyToken'], Format.normalize_reply(reply))
         LineBot.client.reply_message(event['replyToken'], Format.normalize_reply(reply))
       when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
         response = line_client.get_message_content(event.message['id'])
