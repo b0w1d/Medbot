@@ -333,9 +333,9 @@ module Format
 end
 
 class Processor
-  def self.process_frequency_query
-    @@filter = { sex: Parser.parse_sex(@@msg), age: Parser.parse_age(@@msg) } .compact
-    words = @@msg.downcase.split(/\W+/)
+  def process_frequency_query
+    @filter = { sex: Parser.parse_sex(@msg), age: Parser.parse_age(@msg) } .compact
+    words = @msg.downcase.split(/\W+/)
     return nil if words.none? { |w| w.start_with?('freq') || w.start_with?('tf') }
     {
       line: %w(relation relates relating related line plot plots),
@@ -344,34 +344,36 @@ class Processor
       bar: %w(bar group groups grouped grouping categorize categorizes categorized categorizing)
     } .each do |graph_type, keys|
       if words.any? { |w| keys.include?(w) }
-        graph = eval("#{graph_type.capitalize}Graph.new(message: @@msg, filter: @@filter)")
+        graph = eval("#{graph_type.capitalize}Graph.new(message: @msg, filter: @filter)")
         return graph.get_link_of_image
       end
     end
     'If you want to render some graph for term frequency, please specify which kind of graph is desired. Line graph, pie graph, bar graph, and table is available'
   end
 
-  def self.process_message(message)
-    @@msg = message
+  def process_message(message)
+    @msg = message
 
     reply_frequency_query ||= process_frequency_query
     return reply_frequency_query unless reply_frequency_query.nil?
 
     # fallback by dialogflow
     
-    ai_res = AI.client.text_request(@@msg)
+    ai_res = AI.client.text_request(@msg)
     actions = (ai_res[:result][:action] + ?;).split(?;)
     rep_msg = nil
     until actions.empty?
       action = actions.shift
       case action
-      when "show_info"; rep_msg = "Filters are: #{(@@filter.values.join(", ") rescue "None") + ?.}"
-      when "unknown"; rep_msg = "Did you say: " +@@msg + ??
+      when "show_info"; rep_msg = "Filters are: #{(@filter.values.join(", ") rescue "None") + ?.}"
+      when "unknown"; rep_msg = "Did you say: " +@msg + ??
       end
     end
     rep_msg || ai_res[:result][:fulfillment][:speech]
   end
 end
+
+$processor = Processor.new
 
 post '/callback' do
   body = request.body.read
@@ -388,7 +390,7 @@ post '/callback' do
       case event.type
       when Line::Bot::Event::MessageType::Text
         msg_from_user = event.message['text']
-        reply = Processor.process_message(msg_from_user)
+        reply = $processor.process_message(msg_from_user)
         LineBot.client.reply_message(event['replyToken'], Format.normalize_reply(reply))
       when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
         response = line_client.get_message_content(event.message['id'])
