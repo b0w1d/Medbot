@@ -28,7 +28,7 @@ class Patient
   field :death, type: Integer
   field :success, type: Integer
 
-  def get_english_contents(filters)
+  def self.get_english_contents(filters)
     filters[:age] ||= 0..120
     res = []
     sex_is_nil = filters[:sex].nil?
