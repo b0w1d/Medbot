@@ -339,7 +339,7 @@ class Processor
       bar: %w(bar group groups grouped grouping categorize categorizes categorized categorizing)
     } .each do |graph_type, keys|
       if words.any? { |w| keys.include?(w) }
-        graph = send("#{graph_type.capitalize}Graph.new", message: @msg, filter: @filter)
+        graph = eval("#{graph_type.capitalize}Graph.new(message: '#{@msg}', filter: #{@filter})")
         return graph.get_link_of_image
       end
     end
