@@ -140,7 +140,7 @@ end
 class Graph
   attr_accessor :msg, :filter, :args, :error
 
-  def self.is_useful?(word: word)
+  def self.is_useful?(word:)
     return 0 if word.size == 1
     return 0 if %w(he his him boy man male she her girl lady female ml dl mmol item).include?(word.downcase)
     /[^a-zA-Z]/.match?(word) ? 0 : 1
