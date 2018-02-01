@@ -224,7 +224,7 @@ class LineGraph < Graph
     tf_idf = @corpus.get_tf_idf
     records = tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(10).map(&:first).map { |t, f| [t, *tf[t]] }
     suffix = " with #{@filter.to_s.tr('{:}\"', '').gsub('=>', ': ')}"
-    @args = ["Term frequency over #{xname}#{suffix}", xlabels, records]
+    @args = ["TF over #{xname}#{suffix}", xlabels, records]
   end
 
   def render_image(title, xlabels, records)
@@ -267,7 +267,7 @@ class BarGraph < Graph
     tf_idf = @corpus.get_tf_idf
     records = tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(10).map(&:first).map { |t, f| [t, *tf[t]] }
     suffix = " with #{@filter.to_s.tr('{:}\"', '').gsub('=>', ': ')}"
-    @args = ["Term frequency over #{xname}#{suffix}", xlabels, records]
+    @args = ["TF over #{xname}#{suffix}", xlabels, records]
   end
 
   def render_image(title, xlabels, records)
