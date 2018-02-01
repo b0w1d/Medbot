@@ -163,6 +163,7 @@ class PieGraph < Graph
     @msg = message
     @filter = filter
     @corpus = Corpus.new(Patient.get_english_contents(@filter))
+    tc = @corpus.get_term_count_all
     tf_idf = @corpus.get_tf_idf
     @args = ['Term count', tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] }]
   end
@@ -181,6 +182,7 @@ class TableGraph < Graph
     @msg = message
     @filter = filter
     @corpus = Corpus.new(Patient.get_english_contents(@filter))
+    tc = @corpus.get_term_count_all
     tf_idf = @corpus.get_tf_idf
     @args = [[['Words' 'Times']] + tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] }]
   end
