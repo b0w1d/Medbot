@@ -27,6 +27,38 @@ class Patient
   field :decision, type: Integer
   field :death, type: Integer
   field :success, type: Integer
+
+  def get_english_contents(filters)
+    filters[:age] ||= 0..120
+    res = []
+    sex_is_nil = filters[:sex].nil?
+    if filters[:sex] == "male" || sex_is_nil
+      filters[:sex] = "male"
+      res += Patient.where(filters).map { |doc| doc.english_content }
+    end
+    if filters[:sex] == "female" || sex_is_nil
+      filters[:sex] = "female"
+      res += Patient.where(filters).map { |doc| doc.english_content }
+    end
+    filters[:sex] = nil if sex_is_nil
+    res
+  end
+end
+
+class Imgur
+  def client
+    Imgurapi::Session.instance(
+      client_id: ENV['IMGUR_CLIENT_ID'],
+      client_secret: ENV['IMGUR_CLIENT_SECRET'],
+      access_token: ENV['IMGUR_ACCESS_TOKEN'], # expires in a month (1.27 reg)
+      refresh_token: ENV['IMGUR_REFRESH_TOKEN']
+    )
+  end
+
+  def get_link_of_image(local_image) # NOTE: access token expires every month, registerd at 1.27
+    image = client.image.image_upload(local_image)
+    image.link
+  end
 end
 
 def line_client
@@ -40,15 +72,6 @@ def ai_client
   @ai_client ||= ApiAiRuby::Client.new { |config|
     config.client_access_token = ENV['AI_ACCESS_TOKEN']
   }
-end
-
-def imgur_client
-  Imgurapi::Session.instance(
-    client_id: ENV['IMGUR_CLIENT_ID'],
-    client_secret: ENV['IMGUR_CLIENT_SECRET'],
-    access_token: ENV['IMGUR_ACCESS_TOKEN'], # expires in a month (1.27 reg)
-    refresh_token: ENV['IMGUR_REFRESH_TOKEN']
-  )
 end
 
 def get_english_contents(filters)
@@ -121,6 +144,10 @@ def get_tf_idf(corpus, tf: nil) # NOTE: returns a hash with a term's highest tf-
       }
     }
   end
+end
+
+class Graph
+
 end
 
 def get_pie(title, records)
@@ -230,11 +257,6 @@ def get_args_freq_bar(options = {})
   ["Term frequency over #{xname}", xlabels, records]
 end
 
-def get_link_of_image(local_image) # NOTE: access token expires every month, registerd at 1.27
-  image = imgur_client.image.image_upload(local_image)
-  image.link
-end
-
 def parse_sex(s)
   m_key = %w(man male his him himself he boy)
   f_key = %w(woman female her herself she girl)
@@ -280,7 +302,7 @@ def freq_process(msg)
       return args if args.is_a?(String)
       img = send("get_#{graph_type}", *args) rescue nil
       return img if (img[-1] rescue nil) == ?.
-      img_link = get_link_of_image(img) rescue nil
+      img_link = Imgur.get_link_of_image(img) rescue nil
       return img_link unless img_link.nil?
     end
   end
