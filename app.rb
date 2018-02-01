@@ -367,7 +367,7 @@ post '/callback' do
   body = request.body.read
 
   signature = request.env['HTTP_X_LINE_SIGNATURE']
-  unless line_client.validate_signature(body, signature)
+  unless LineBot.client.validate_signature(body, signature)
     error 400 do 'Bad Request' end
   end
 
@@ -379,7 +379,7 @@ post '/callback' do
       when Line::Bot::Event::MessageType::Text
         msg_from_user = event.message['text']
         reply = Processor.new.process_message(msg_from_user)
-        line_client.reply_message(event['replyToken'], Format.normalize_reply(reply))
+        LineBot.client.reply_message(event['replyToken'], Format.normalize_reply(reply))
       when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
         response = line_client.get_message_content(event.message['id'])
         Tempfile.open("content").write(response.body)
