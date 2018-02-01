@@ -310,6 +310,8 @@ module Parser
 end
 
 module Format
+  extend self
+
   def normalize_label(name)
     return nil if name.nil?
     return :sex if %w(sex gender).include? name
