@@ -334,6 +334,7 @@ end
 
 class Processor
   def process_frequency_query
+    @@filter = { sex: Parser.parse_sex(@@msg), age: Parser.parse_age(@@msg) } .compact
     words = @@msg.downcase.split(/\W+/)
     return nil if words.none? { |w| w.start_with?('freq') || w.start_with?('tf') }
     {
@@ -352,7 +353,6 @@ class Processor
 
   def process_message(message)
     @@msg = message
-    @@filter = { sex: Parser.parse_sex(@@msg), age: Parser.parse_age(@@msg) } .compact
 
     reply_frequency_query ||= process_frequency_query
     return reply_frequency_query unless reply_frequency_query.nil?
