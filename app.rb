@@ -28,7 +28,7 @@ class Patient
   field :death, type: Integer
   field :success, type: Integer
 
-  def self.get_english_contents(filters)
+  def self.get_english_contents(filters = {})
     filters[:age] ||= 0..120
     Array.new.tap do |res|
       if filters[:sex] != "female"
