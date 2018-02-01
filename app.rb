@@ -197,8 +197,8 @@ def get_args_freq_line(options = {})
     dcss = Patient.where($filter_info).map { |pt| pt.date_content }
     dcss = dcss.map { |dcs| dcs.sort_by { |dc| dc[0] * 13 * 50 + dc[1] * 50 + dc[2] } .map { |dc| dc[3] || "" } }
     dn = [dcss.map(&:size).max, 10].min
-    dcss = dcss.map { |dcs| dcs = dcs.first(dn); dcs += [""] * [(dcss.size - dcs.size), 0].max }
     dcss += [[""] * dn] * [dn - dcss.size, 0].max
+    dcss = dcss.map { |dcs| dcs = dcs.first(dn); dcs += [""] * [(dcss.size - dcs.size), 0].max }
     ecs = dcss.transpose.map { |ds| ds.join(' ') } .first(dn)
     xlabels = (1..dn).to_a
   end
