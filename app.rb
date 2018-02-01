@@ -30,18 +30,14 @@ class Patient
 
   def self.get_english_contents(filters)
     filters[:age] ||= 0..120
-    res = []
-    sex_is_nil = filters[:sex].nil?
-    if filters[:sex] == "male" || sex_is_nil
-      filters[:sex] = "male"
-      res += Patient.where(filters).map { |doc| doc.english_content }
+    Array.new.tap do |res|
+      if filters[:sex] != "female"
+        res << Patient.where(filters.merge({ sex: "male" })).map { |doc| doc.english_content }
+      end
+      if filters[:sex] != "male"
+        res << Patient.where(filters.merge({ sex: "female" })).map { |doc| doc.english_content }
+      end
     end
-    if filters[:sex] == "female" || sex_is_nil
-      filters[:sex] = "female"
-      res += Patient.where(filters).map { |doc| doc.english_content }
-    end
-    filters[:sex] = nil if sex_is_nil
-    res
   end
 end
 
@@ -78,59 +74,73 @@ class AI
   end
 end
 
-module Terms
-  def self.get_term_count(text:)
-    return Hash.new { |h, k| h[k] = 0 } if text.empty?
+class Text
+  def initialize(text)
+    @text = text
+  end
+
+  def get_term_count
+    return Hash.new { |h, k| h[k] = 0 } if @text.empty?
     Hash.new { |h, k| h[k] = 0 } .tap do |tc|
-      begin
-        text.split(/\W+/).each do |word|
-          tc[word] += 1
-        end
-      rescue
+      @text.split(/\W+/).each do |word|
+        tc[word] += 1
       end
     end
   end
 
-  def self.get_term_count_all(text: nil, tcs: nil)
-    tcs ||= get_term_count(text)
-    Hash.new { |h, k| h[k] = 0 } .tap { |h|
-      tcs.each { |tc|
-        tc.each { |t, c| h[t] += c }
-      }
-    }
+  def get_words
+    return [] if @text.empty?
+    get_term_count.map &:first
+  end
+end
+
+class Corpus
+  def initialize(corpus)
+    @corpus = corpus
   end
 
-  def self.get_term_frequency(corpus:, tcs: nil, tc_all: nil)
-    tcs ||= corpus.map { |doc| get_term_count(doc) }
-    doc_size = tcs.map { |tc| tc.values.sum }
-    tc_all ||= get_term_count_all(tcs)
-    Hash.new { |h, k| h[k] = [] } .tap do |tf|
-      tc_all.each { |term, cnt|
-        tcs.zip(doc_size).each { |tc, dc| tf[term] << (tc.include?(term) ? tc[term].to_f / dc : 0) }
-      }
+  def get_term_count_all
+    @tcs ||= @corpus.map { |text| Text.new(text).get_term_count }
+    @tc_all ||= Hash.new { |h, k| h[k] = 0 } .tap do |h|
+      @tcs.each do |tc|
+        tc.each do |t, c|
+          h[t] += c
+        end
+      end
     end
   end
 
-  def self.get_term_existance(corpus:, tcs: nil, tc_all:nil)
-    tcs ||= corpus.map { |doc| get_term_count(doc) }
-    tc_all ||= get_term_count_all(tcs)
-    Hash.new { |h, k| h[k] = 0 } .tap do |te|
-      tc_all.each { |term, _| 
-        tcs.each { |tc| te[term] += [tc[term], 1].min }
-      } 
+  def get_term_frequency
+    @wcs ||= @tcs.map { |tc| tc.values.sum }
+    @tc_all ||= get_term_count_all
+    @tf ||= Hash.new { |h, k| h[k] = [] } .tap do |tf|
+      @tc_all.each do |term, cnt|
+        @tcs.zip(@wcs).each do |tc, dc|
+          tf[term] << (tc.include?(term) ? tc[term].to_f / dc : 0)
+        end
+      end
     end
   end
 
-  def self.get_tf_idf(corpus:, tf: nil) # NOTE: returns a hash with a term's highest tf-idf in corpus
-    tcs = corpus.map { |doc| get_term_count(doc) }
-    tc_all = get_term_count_all(tcs)
-    tf ||= get_term_frequency(corpus, tcs: tcs, tc_all: tc_all)
-    te = get_term_existance(corpus, tcs: tcs, tc_all: tc_all)
-    idf = te.map { |h, k| [h, Math.log(corpus.size / k)] } .to_h
-    Hash.new { |h, k| h[k] = [] } .tap do |tfidf_by_term|
-      tc_all.each { |term, _|
-        corpus.size.times { |i|
-          tfidf_by_term[term] << tf[term][i] * (idf[term] || 0)
+  def get_term_existence
+    @tc_all ||= get_term_count_all
+    @te ||= Hash.new { |h, k| h[k] = 0 } .tap do |te|
+      @tc_all.each do |term, _| 
+        @tcs.each do |tc|
+          te[term] += [tc[term], 1].min
+        end
+      end
+    end
+  end
+
+  def get_tf_idf # NOTE: returns max sum
+    @tf ||= get_term_frequency
+    @te ||= get_term_existence
+    @idf = @te.map { |h, k| [h, Math.log(@corpus.size / k)] } .to_h
+    @tf_idf = Hash.new { |h, k| h[k] = [] } .tap do |tfidf_by_term|
+      @tc_all.each { |term, _|
+        @corpus.size.times { |i|
+          tfidf_by_term[term] << @tf[term][i] * (@idf[term] || 0)
         }
       }
     end
@@ -138,7 +148,7 @@ module Terms
 end
 
 class Graph
-  attr_accessor :msg, :filter, :args, :error
+  attr_accessor :msg, :filter, :corpus, :args, :error
 
   def self.is_useful?(word:)
     return 0 if word.size == 1
@@ -156,9 +166,8 @@ class PieGraph < Graph
   def initialize(message:, filter: {})
     @msg = message
     @filter = filter
-    ecs = Patient.get_english_contents(@filter)
-    tc = Terms.get_term_count(text: ecs.join(' '))
-    tf_idf = Terms.get_tf_idf(corpus: ecs)
+    @corpus = Corpus.new(Patient.get_english_contents(@filter))
+    tf_idf = @corpus.get_tf_idf
     @args = ['Term count', tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] }]
   end
 
@@ -175,9 +184,8 @@ class TableGraph < Graph
   def initialize(message:, filter: {})
     @msg = message
     @filter = filter
-    ecs = Patient.get_english_contents(@filter)
-    tc = Terms.get_term_count(text: ecs.join(' '))
-    tf_idf = Terms.get_tf_idf(corpus: ecs)
+    @corpus = Corpus.new(Patient.get_english_contents(@filter))
+    tf_idf = @corpus.get_tf_idf
     @args = [[['Words' 'Times']] + tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] }]
   end
 
@@ -210,8 +218,9 @@ class LineGraph < Graph
       ecs = dcss.transpose.map { |ds| ds.join(' ') } .first(dn)
       xlabels = (1..dn).to_a
     end
-    tf = Terms.get_term_frequency(corpus: ecs)
-    tf_idf = Terms.get_tf_idf(corpus: ecs, tf: tf)
+    @corpus = Corpus.new(ecs)
+    tf = @corpus.get_term_frequency
+    tf_idf = @corpus.get_tf_idf
     records = tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(10).map(&:first).map { |t, f| [t, *tf[t]] }
     @args = ["Term frequency over #{xname}", xlabels, records]
   end
@@ -250,8 +259,9 @@ class BarGraph < Graph
       ecs = (0...gn).map { |g| Patient.get_english_contents(@filter.merge({ age: (st + g * gap_len)...(st + (g + 1) * gap_len) })).join(' ') }
       xlabels = (0...gn).map { |g| (st + g * gap_len).to_s + ?~ }
     end
-    tf = Terms.get_term_frequency(corpus: ecs)
-    tf_idf = Terms.get_tf_idf(corpus: ecs, tf: tf)
+    @corpus = Corpus.new(ecs)
+    tf = @corpus.get_term_frequency
+    tf_idf = @corpus.get_tf_idf
     records = tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(10).map(&:first).map { |t, f| [t, *tf[t]] }
     @args = ["Term frequency over #{xname}", xlabels, records]
   end
