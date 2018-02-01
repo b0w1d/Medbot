@@ -168,7 +168,7 @@ class PieGraph < Graph
     @args = ['Term count', tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] }]
   end
 
-  def self.render_image(title, records)
+  def render_image(title, records)
     g = Gruff::Pie.new
     g.title = title
     records.each { |k, v| g.data(k, v) }
@@ -187,7 +187,7 @@ class TableGraph < Graph
     @args = [[['Words' 'Times']] + tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] }]
   end
 
-  def self.render_image(records)
+  def render_image(records)
     Prawn::Document.generate('table.pdf') do |pdf|
       table_data = records.map do |r|
         [Prawn::Table::Cell::Text.new(pdf, [0, 0], content: r[0], inline_format: true), *r[1..-1]]
@@ -223,7 +223,7 @@ class LineGraph < Graph
     @args = ["Term frequency over #{xname}", xlabels, records]
   end
 
-  def self.render_image(title, xlabels, records)
+  def render_image(title, xlabels, records)
     g = Gruff::Line.new(800)
     g.title = title
     g.theme = {
@@ -264,7 +264,7 @@ class BarGraph < Graph
     @args = ["Term frequency over #{xname}", xlabels, records]
   end
 
-  def self.render_image(title, xlabels, records)
+  def render_image(title, xlabels, records)
     g = Gruff::Bar.new(800)
     g.title = title
     g.theme = {
