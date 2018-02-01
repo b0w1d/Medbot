@@ -32,10 +32,10 @@ class Patient
     filters[:age] ||= 0..120
     Array.new.tap do |res|
       if filters[:sex] != "female"
-        res << Patient.where(filters.merge({ sex: "male" })).map { |doc| doc.english_content }
+        res += Patient.where(filters.merge({ sex: "male" })).map { |doc| doc.english_content }
       end
       if filters[:sex] != "male"
-        res << Patient.where(filters.merge({ sex: "female" })).map { |doc| doc.english_content }
+        res += Patient.where(filters.merge({ sex: "female" })).map { |doc| doc.english_content }
       end
     end
   end
@@ -86,11 +86,6 @@ class Text
         tc[word] += 1
       end
     end
-  end
-
-  def get_words
-    return [] if @text.empty?
-    get_term_count.map &:first
   end
 end
 
