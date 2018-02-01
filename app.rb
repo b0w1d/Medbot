@@ -333,10 +333,8 @@ module Format
 end
 
 class Processor
-  attr_accessor :msg, :filter
-
   def process_frequency_query
-    words = @msg.downcase.split(/\W+/)
+    words = @@msg.downcase.split(/\W+/)
     return nil if words.none? { |w| w.start_with?('freq') || w.start_with?('tf') }
     {
       line: %w(relation relates relating related line plot plots),
@@ -345,7 +343,7 @@ class Processor
       bar: %w(bar group groups grouped grouping categorize categorizes categorized categorizing)
     } .each do |graph_type, keys|
       if words.any? { |w| keys.include?(w) }
-        graph = eval("#{graph_type.capitalize}Graph.new(message: @msg, filter: @filter)")
+        graph = eval("#{graph_type.capitalize}Graph.new(message: @@msg, filter: @@filter)")
         return graph.get_link_of_image
       end
     end
@@ -353,8 +351,8 @@ class Processor
   end
 
   def process_message(message)
-    @msg = message
-    @filter = { sex: Parser.parse_sex(@msg), age: Parser.parse_age(@msg) } .compact
+    @@msg = message
+    @@filter = { sex: Parser.parse_sex(@@msg), age: Parser.parse_age(@@msg) } .compact
 
     reply_frequency_query ||= process_frequency_query
     return reply_frequency_query unless reply_frequency_query.nil?
@@ -367,7 +365,7 @@ class Processor
     until actions.empty?
       action = actions.shift
       case action
-      when "show_info"; rep_msg = "Filters are: #{@filter.values.join(", ")}"
+      when "show_info"; rep_msg = "Filters are: #{@@filter.values.join(", ")}"
       when "unknown"; rep_msg = "Did you say: " + msg + ??
       end
     end
@@ -390,7 +388,7 @@ post '/callback' do
       case event.type
       when Line::Bot::Event::MessageType::Text
         msg_from_user = event.message['text']
-        reply = Processor.new.process_message(msg_from_user)
+        reply = Processor.process_message(msg_from_user)
         LineBot.client.reply_message(event['replyToken'], Format.normalize_reply(reply))
       when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
         response = line_client.get_message_content(event.message['id'])
