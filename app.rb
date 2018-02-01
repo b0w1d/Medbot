@@ -373,8 +373,6 @@ class Processor
   end
 end
 
-$processors = {}
- 
 post '/callback' do
   body = request.body.read
 
@@ -391,7 +389,6 @@ post '/callback' do
       when Line::Bot::Event::MessageType::Text
         msg_from_user = event.message['text']
         reply = Processor.new.process_message(msg_from_user)
-        LineBot.client.reply_message(event['replyToken'], Format.normalize_reply(reply))
         LineBot.client.reply_message(event['replyToken'], Format.normalize_reply(reply))
       when Line::Bot::Event::MessageType::Image, Line::Bot::Event::MessageType::Video
         response = line_client.get_message_content(event.message['id'])
