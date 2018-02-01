@@ -359,14 +359,14 @@ class Processor
 
     # fallback by dialogflow
     
-    ai_res = AI.client.text_request(msg)
+    ai_res = AI.client.text_request(@@msg)
     actions = (ai_res[:result][:action] + ?;).split(?;)
     rep_msg = nil
     until actions.empty?
       action = actions.shift
       case action
-      when "show_info"; rep_msg = "Filters are: #{@@filter.values.join(", ")}"
-      when "unknown"; rep_msg = "Did you say: " + msg + ??
+      when "show_info"; rep_msg = "Filters are: #{(@@filter.values.join(", ") rescue "None") + ?.}"
+      when "unknown"; rep_msg = "Did you say: " +@@msg + ??
       end
     end
     rep_msg || ai_res[:result][:fulfillment][:speech]
