@@ -37,7 +37,7 @@ class Patient
       if filters[:sex] != "male"
         res += Patient.where(filters.merge({ sex: "female" })).map { |doc| doc.english_content }
       end
-    end
+    end[0]
   end
 end
 
