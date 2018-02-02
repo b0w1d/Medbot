@@ -186,7 +186,7 @@ class TableGraph < Graph
     tc = @corpus.get_term_count_all
     tf_idf = @corpus.get_tf_idf
     suffix = " with #{@filter.to_s.tr('{:}\"', '').gsub('=>', ': ')}"
-    @args = [[["Words#{suffix}" 'Times']] + tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] }]
+    @args = [[["Words#{suffix}", 'Times']] + tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(20).map { |t, f| [t, tc[t]] } .sort_by { |t, f| -f }]
   end
 
   def render_image(records)
