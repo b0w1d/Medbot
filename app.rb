@@ -212,7 +212,12 @@ class LineGraph < Graph
     xlabels = []
     case xname
     when :date
-      dcss = Patient.where(@filter).map { |pt| pt.date_content }
+      dcss = Patient.where(@filter).map do |pt|
+        pt.date_content.map do |x|
+          x[3] = "" unless x[3].match?(/#{keyword}/i)
+          x
+        end
+      end
       dcss = dcss.map { |dcs| dcs.sort_by { |dc| dc[0] * 13 * 50 + dc[1] * 50 + dc[2] } .map { |dc| dc[3] || "" } }
       dn = [dcss.map(&:size).max, 10].min
       dcss += [[""] * dn] * [dn - dcss.size, 0].max
