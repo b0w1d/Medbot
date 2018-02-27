@@ -34,13 +34,11 @@ class Patient
     Array.new.tap do |res|
       if filters[:sex] != "female"
         res << Patient.where(filters.merge({ sex: "male" })).map { |doc| doc.english_content }
-        res.pop unless res[-1].match?(/#{keyword}/i)
       end
       if filters[:sex] != "male"
         res << Patient.where(filters.merge({ sex: "female" })).map { |doc| doc.english_content }
-        res.pop unless res[-1].match?(/#{keyword}/i)
       end
-    end[0]
+    end.inject(:+).select { |t| t.match?(/#{keyword}/i) }
   end
 end
 
