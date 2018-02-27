@@ -18,6 +18,7 @@ Mongoid.load!("mongoid.yml")
 
 class Patient
   include Mongoid::Document
+
   field :pid, type: Integer
   field :sex, type: String
   field :age, type: Integer
@@ -28,14 +29,16 @@ class Patient
   field :death, type: Integer
   field :success, type: Integer
 
-  def self.get_english_contents(filters = {})
+  def self.get_english_contents(filters = {}, keyword = nil)
     filters[:age] ||= 0..120
     Array.new.tap do |res|
       if filters[:sex] != "female"
         res << Patient.where(filters.merge({ sex: "male" })).map { |doc| doc.english_content }
+        res.pop unless res[-1].match?(/#{keyword}/i)
       end
       if filters[:sex] != "male"
         res << Patient.where(filters.merge({ sex: "female" })).map { |doc| doc.english_content }
+        res.pop unless res[-1].match?(/#{keyword}/i)
       end
     end[0]
   end
@@ -159,10 +162,10 @@ class Graph
 end
 
 class PieGraph < Graph
-  def initialize(message:, filter: {})
+  def initialize(message:, filter: {}, keyword:)
     @msg = message
     @filter = filter
-    @corpus = Corpus.new(Patient.get_english_contents(@filter))
+    @corpus = Corpus.new(Patient.get_english_contents(@filter, keyword))
     tc = @corpus.get_term_count_all
     tf_idf = @corpus.get_tf_idf
     suffix = " with #{@filter.to_s.tr('{:}\"', '').gsub('=>', ': ')}"
@@ -179,10 +182,10 @@ class PieGraph < Graph
 end
 
 class TableGraph < Graph
-  def initialize(message:, filter: {})
+  def initialize(message:, filter: {}, keyword:)
     @msg = message
     @filter = filter
-    @corpus = Corpus.new(Patient.get_english_contents(@filter))
+    @corpus = Corpus.new(Patient.get_english_contents(@filter), keyword)
     tc = @corpus.get_term_count_all
     tf_idf = @corpus.get_tf_idf
     suffix = " with #{@filter.to_s.tr('{:}\"', '').gsub('=>', ': ')}"
@@ -202,7 +205,7 @@ class TableGraph < Graph
 end
 
 class LineGraph < Graph
-  def initialize(message:, filter: {})
+  def initialize(message:, filter: {}, keyword:)
     @msg = message
     @filter = filter
     xname = /(?:x\s*|axis|around)+\s*(?::|\-|upon|is|in|on|by|at|for|with|as|\s*)\s*([^\s]+)\s*/i.match(@msg)[1] rescue nil
@@ -243,7 +246,7 @@ class LineGraph < Graph
 end
 
 class BarGraph < Graph
-  def initialize(message:, filter: {})
+  def initialize(message:, filter: {}, keyword:)
     @msg = message
     @filter = filter
     xname = /(?:group|bar\s*|categorize|categorized)+\s*(?:by|on|\s*)\s*([^\s]+)\s*/i.match(@msg)[1] rescue nil
@@ -252,14 +255,14 @@ class BarGraph < Graph
     xlabels = []
     case xname
     when :sex
-      ecs = [Patient.get_english_contents(@filter.merge({ sex: 'male' })).join(' '), Patient.get_english_contents(@filter.merge({ sex: 'female' })).join(' ')]
+      ecs = [Patient.get_english_contents(@filter.merge({ sex: 'male' }), keyword).join(' '), Patient.get_english_contents(@filter.merge({ sex: 'female' }), keyword).join(' ')]
       xlabels = [:male, :female]
     when :age
       age_range = @filter[:age] || (0..120)
       st = age_range.first
       gap_len = [age_range.size / 10, 1].max
       gn = (age_range.size + gap_len - 1) / gap_len
-      ecs = (0...gn).map { |g| Patient.get_english_contents(@filter.merge({ age: (st + g * gap_len)...(st + (g + 1) * gap_len) })).join(' ') }
+      ecs = (0...gn).map { |g| Patient.get_english_contents(@filter.merge({ age: (st + g * gap_len)...(st + (g + 1) * gap_len) }), keyword).join(' ') }
       xlabels = (0...gn).map { |g| (st + g * gap_len).to_s + ?~ }
     end
     @corpus = Corpus.new(ecs)
@@ -347,7 +350,7 @@ class Processor
       bar: %w(bar group groups grouped grouping categorize categorizes categorized categorizing)
     } .each do |graph_type, keys|
       if words.any? { |w| keys.include?(w) }
-        graph = eval("#{graph_type.capitalize}Graph.new(message: @msg, filter: @filter)")
+        graph = eval("#{graph_type.capitalize}Graph.new(message: @msg, filter: @filter, keyword: @msg.match(/keyword.*(?:is|:)\s*([a-z]+)/i)[1])")
         return graph.get_link_of_image
       end
     end
@@ -369,8 +372,8 @@ class Processor
     until actions.empty?
       action = actions.shift
       case action
-      when "show_info"; rep_msg = "Filters are: #{(@filter.values.join(", ") rescue "None") + ?.}"
-      when "unknown"; rep_msg = "Did you say: " +@msg + ??
+      when "show_info"; rep_msg = "Filters are: #{@filter.values.join(", ") rescue "None"}."
+      when "unknown"; rep_msg = "Did you say: #{@msg}?"
       end
     end
     rep_msg || ai_res[:result][:fulfillment][:speech]
