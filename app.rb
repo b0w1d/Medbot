@@ -350,7 +350,7 @@ class Processor
       bar: %w(bar group groups grouped grouping categorize categorizes categorized categorizing)
     } .each do |graph_type, keys|
       if words.any? { |w| keys.include?(w) }
-        graph = eval("#{graph_type.capitalize}Graph.new(message: @msg, filter: @filter, keyword: @msg.match(/keyword.*(?:is|:)\s*([a-z]+)/i)[1] rescue nil)")
+        graph = eval("#{graph_type.capitalize}Graph.new(message: @msg, filter: @filter, keyword: (@msg.match(/keyword.*(?:is|:)\s*([a-z]+)/i)[1] rescue nil))")
         return graph.get_link_of_image
       end
     end
