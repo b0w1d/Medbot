@@ -186,7 +186,7 @@ class TableGraph < Graph
   def initialize(message:, filter: {}, keyword:)
     @msg = message
     @filter = filter
-    @corpus = Corpus.new(Patient.get_english_contents(@filter), keyword)
+    @corpus = Corpus.new(Patient.get_english_contents(@filter, keyword))
     tc = @corpus.get_term_count_all
     tf_idf = @corpus.get_tf_idf
     suffix = " with #{@filter.to_s.tr('{:}\"', '').gsub('=>', ': ')}"
@@ -368,7 +368,7 @@ class Processor
     return nil if words.none? { |w| w.start_with?('after') || w.start_with?('effect') }
     keyword = @msg.match(/keyword.*(?:is|:)\s*([a-z]+)/i)[1] rescue nil
     return nil if keyword.nil?
-    dcss = Patient.where({}, keyword).map do |pt|
+    dcss = Patient.where({}).map do |pt|
       pt.date_content.map do |x|
         x[3] = "" unless x[3].match?(/#{keyword}/i)
         x
@@ -376,7 +376,6 @@ class Processor
     end
     dcss = dcss.map { |dcs| dcs.sort_by { |dc| dc[0] * 13 * 50 + dc[1] * 50 + dc[2] } .map { |dc| dc[3] || "" } }
     @corpus = Corpus.new(dcss)
-    tf = @corpus.get_term_frequency
     tf_idf = @corpus.get_tf_idf
     res = tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(5).map(&:first).map { |t, f| t }
     "These things might occur as result, relating to the keyword #{keyword}: " + res.join(', ') + ?.
