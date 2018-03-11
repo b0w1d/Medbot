@@ -373,7 +373,7 @@ class Processor
         x[3] = "" unless x[3].match?(/#{keyword}/i)
         x[3]
       end
-    end
+    end.flatten
     @corpus = Corpus.new(dcss)
     tf_idf = @corpus.get_tf_idf
     g = Graph.new
