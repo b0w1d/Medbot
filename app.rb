@@ -366,7 +366,7 @@ class Processor
   def process_effect_query
     words = @msg.downcase.split(/\W+/)
     return nil if words.none? { |w| w.start_with?('after') || w.start_with?('effect') }
-    keyword = (@msg.match(/keyword.*(?:is|:)\s*([a-z]+)/i)[1] rescue nil))
+    keyword = @msg.match(/keyword.*(?:is|:)\s*([a-z]+)/i)[1] rescue nil
     return nil if keyword.nil?
     dcss = Patient.where({}, keyword).map do |pt|
       pt.date_content.map do |x|
