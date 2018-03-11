@@ -377,7 +377,8 @@ class Processor
     dcss = dcss.map { |dcs| dcs.sort_by { |dc| dc[0] * 13 * 50 + dc[1] * 50 + dc[2] } .map { |dc| dc[3] || "" } }
     @corpus = Corpus.new(dcss)
     tf_idf = @corpus.get_tf_idf
-    res = tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(5).map(&:first).map { |t, f| t }
+    g = Graph.new
+    res = tf_idf.sort_by { |t, f| g.is_useful?(word: t) * -(f.sum) } .first(5).map(&:first).map { |t, f| t }
     "These things might occur as result, relating to the keyword #{keyword}: " + res.join(', ') + ?.
   end
 
