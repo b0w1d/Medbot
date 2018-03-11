@@ -61,6 +61,9 @@ GEM
     rack (2.0.3)
     rack-protection (2.0.0)
       rack
+    rake (12.3.0)
+    rake-compiler (1.0.4)
+      rake
     rest-client (1.8.0)
       http-cookie (>= 1.0.2, < 2.0)
       mime-types (>= 1.16, < 3.0)
@@ -71,6 +74,8 @@ GEM
       rack (~> 2.0)
       rack-protection (= 2.0.0)
       tilt (~> 2.0)
+    summarize (1.0.3)
+      rake-compiler
     tf-idf-similarity (0.1.6)
       unicode_utils (~> 1.4)
     thread_safe (0.3.6)
@@ -99,6 +104,7 @@ DEPENDENCIES
   prawn-table
   rest-client
   sinatra
+  summarize
   tf-idf-similarity
 
 RUBY VERSION

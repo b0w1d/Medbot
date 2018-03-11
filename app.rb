@@ -14,6 +14,9 @@ require 'rmagick'
 # for image url
 require 'imgurapi'
 
+# for summarizing
+require 'summarize'
+
 Mongoid.load!("mongoid.yml")
 
 class Patient
@@ -149,7 +152,7 @@ class Graph
 
   def is_useful?(word:)
     return 0 if word.size == 1
-    return 0 if %w(he his him boy man male she her girl lady female ml dl mmol item and with of to for was on the mg time or is are they them their doctor hospital in no under below above status at days).include?(word.downcase)
+    return 0 if %w(he his him boy man male she her girl lady female ml dl mmol item and with of to for was on the mg time or is are they them their doctor hospital in no under below above status at days without).include?(word.downcase)
     /[^a-zA-Z]/.match?(word) ? 0 : 1
   end
 
@@ -359,6 +362,25 @@ class Processor
     end
     'If you want to render some graph for term frequency, please specify which kind of graph is desired. Line graph, pie graph, bar graph, and table is available'
   end
+  
+  def process_effect_query
+    words = @msg.downcase.split(/\W+/)
+    return nil if words.none? { |w| w.start_with?('after') || w.start_with?('effect') }
+    keyword = (@msg.match(/keyword.*(?:is|:)\s*([a-z]+)/i)[1] rescue nil))
+    return nil if keyword.nil?
+    dcss = Patient.where({}, keyword).map do |pt|
+      pt.date_content.map do |x|
+        x[3] = "" unless x[3].match?(/#{keyword}/i)
+        x
+      end
+    end
+    dcss = dcss.map { |dcs| dcs.sort_by { |dc| dc[0] * 13 * 50 + dc[1] * 50 + dc[2] } .map { |dc| dc[3] || "" } }
+    @corpus = Corpus.new(dcss)
+    tf = @corpus.get_term_frequency
+    tf_idf = @corpus.get_tf_idf
+    res = tf_idf.sort_by { |t, f| is_useful?(word: t) * -(f.sum) } .first(5).map(&:first).map { |t, f| t }
+    "These things might occur as result, relating to the keyword #{keyword}: " + res.join(', ') + ?.
+  end
 
   def process_message(message)
     @msg = message
@@ -366,6 +388,9 @@ class Processor
 
     reply_frequency_query ||= process_frequency_query
     return reply_frequency_query unless reply_frequency_query.nil?
+
+    reply_effect_query ||= process_effect_query
+    return reply_effect_query unless reply_effect_query.nil?
 
     # fallback by dialogflow
     
