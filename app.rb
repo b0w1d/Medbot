@@ -371,10 +371,15 @@ class Processor
     dcss = Patient.where({}).map do |pt|
       pt.date_content.map do |x|
         x[3] = "" unless x[3].match?(/#{keyword}/i)
-        x[3]
+        x
       end
-    end.flatten
-    @corpus = Corpus.new(dcss)
+    end
+    dcss = dcss.map { |dcs| dcs.sort_by { |dc| dc[0] * 13 * 50 + dc[1] * 50 + dc[2] } .map { |dc| dc[3] || "" } }
+    dn = [dcss.map(&:size).max, 10].min
+    dcss += [[""] * dn] * [dn - dcss.size, 0].max
+    dcss = dcss.map { |dcs| dcs = dcs.first(dn); dcs += [""] * [(dcss.size - dcs.size), 0].max }
+    ecs = dcss.transpose.map { |ds| ds.join(' ') } .first(dn)
+    @corpus = Corpus.new(ecs)
     tf_idf = @corpus.get_tf_idf
     g = Graph.new
     res = tf_idf.sort_by { |t, f| (g.is_useful?(word: t) & (t == keyword ? 0 : 1))* -(f.sum) } .first(5).map(&:first).map { |t, f| t }
