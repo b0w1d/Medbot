@@ -403,7 +403,7 @@ class Processor
     "These things might occur as result, relating to the keyword #{keyword}: " + res.join(', ') + ?.
   end
 
-  def process_help_query(message)
+  def process_help_query
     words = @msg.downcase.split(/\W+/)
     return nil if words.none? { |w| w.start_with?('help') }
     <<-EOS
