@@ -393,7 +393,7 @@ class Processor
         x[3].split(/\./).each do |s|
           if s.match?(/#{keyword}/)
             s.split(/[\s]/).each do |w|
-              kc[w] += 1 if g.is_useful?(word: w)
+              kc[w] += 1 if g.is_useful?(word: w) > 0
             end
           end
         end
