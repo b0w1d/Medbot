@@ -151,7 +151,7 @@ class Graph
   attr_accessor :msg, :filter, :corpus, :args, :error
 
   def is_useful?(word:)
-    return 0 if word.size == 1
+    return 0 if word.size <= 1
     return 0 if word.match?(/[^a-zA-Z]/)
     return 0 if %w(and with of he his him boy man male she her girl lady female ml dl mmol item and with of to for was on the mg time or is are they them their doctor hospital in no under below above status at days without).include?(word.downcase)
     /[^a-zA-Z]/.match?(word) ? 0 : 1
