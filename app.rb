@@ -397,7 +397,7 @@ class Processor
         end
       end
     end
-    keyword = kc.to_a.sort_by { |k, v| -v } .first(5).map(&:first)
+    res = kc.to_a.sort_by { |k, v| -v } .first(5).map(&:first)
     "These things might occur as result, relating to the keyword #{keyword}: " + res.join(', ') + ?.
   end
 
