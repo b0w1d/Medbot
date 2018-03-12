@@ -386,12 +386,13 @@ class Processor
     res = tf_idf.sort_by { |t, f| (g.is_useful?(word: t) & (t == keyword ? 0 : 1))* -(f.sum) } .first(5).map(&:first).map { |t, f| t }
 =end
     kc = Hash.new { |h, k| h[k] = 0 }
+    g = Graph.new
     dcss = Patient.where({}).map do |pt|
       pt.date_content.each do |x|
         x[3].split(/\./).each do |s|
           if s.match?(/#{keyword}/)
             s.split(/[\s]/).each do |w|
-              kc[w] += 1
+              kc[w] += 1 if g.is_useful?(word: w)
             end
           end
         end
