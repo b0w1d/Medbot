@@ -403,6 +403,14 @@ class Processor
     "These things might occur as result, relating to the keyword #{keyword}: " + res.join(', ') + ?.
   end
 
+  def process_help_query(message)
+    words = @msg.downcase.split(/\W+/)
+    return nil if words.none? { |w| w.start_with?('help') }
+    <<-EOS
+usage: 
+    EOS
+  end
+
   def process_message(message)
     @msg = message
     @filter = { sex: Parser.parse_sex(@msg), age: Parser.parse_age(@msg) } .compact
@@ -412,6 +420,11 @@ class Processor
 
     reply_effect_query ||= process_effect_query
     return reply_effect_query unless reply_effect_query.nil?
+
+    reply_help_query ||= process_help_query
+    return reply_help_query unless reply_help_query.nil?
+
+    return "I don't know what you are talking about. You can submit 'help' to know more about what I can do."
 
     # fallback by dialogflow
     

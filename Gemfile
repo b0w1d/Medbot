@@ -1,8 +1,7 @@
 source 'https://rubygems.org'
 
 ruby '2.5.0'
-
-gem 'sinatra'
+gem 'sinatra', '~> 2.0.1'
 gem 'api-ai-ruby'
 gem 'json'
 gem 'line-bot-api'
