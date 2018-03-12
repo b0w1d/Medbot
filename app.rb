@@ -366,7 +366,7 @@ class Processor
   
   def process_effect_query
     words = @msg.downcase.split(/\W+/)
-    return nil if words.none? { |w| w.start_with?('after') || w.start_with?('effect') }
+    return nil if words.none? { |w| w.start_with?('result') || w.start_with?('after') || w.start_with?('effect') }
     keyword = @msg.match(/keyword.*(?:is|:)\s*([a-z]+)/i)[1] rescue nil
     return nil if keyword.nil?
 =begin
@@ -408,6 +408,15 @@ class Processor
     return nil if words.none? { |w| w.start_with?('help') }
     <<-EOS
 usage: 
+
+- You can ask me to predict results by keyword:
+e.g., "Tell me what would happen as result, the keyword is cancer"
+
+- You can ask me to render a graph or table for term frequency analysis:
+e.g., "Term frequency table graph where x is date, for male, age from 60 to 70. Keyword is PO"
+e.g., "Term frequency line graph where x is date, female, age 60 to 70"
+e.g., "Term frequency bar graph, group by gender, keyword is aortic"
+e.g., "Term frequency pie chart, age between 50 to 60"
     EOS
   end
 
