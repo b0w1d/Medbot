@@ -368,6 +368,7 @@ class Processor
     return nil if words.none? { |w| w.start_with?('after') || w.start_with?('effect') }
     keyword = @msg.match(/keyword.*(?:is|:)\s*([a-z]+)/i)[1] rescue nil
     return nil if keyword.nil?
+=begin
     dcss = Patient.where({}).map do |pt|
       pt.date_content.map do |x|
         x[3] = "" unless x[3].match?(/#{keyword}/i)
@@ -383,6 +384,20 @@ class Processor
     tf_idf = @corpus.get_tf_idf
     g = Graph.new
     res = tf_idf.sort_by { |t, f| (g.is_useful?(word: t) & (t == keyword ? 0 : 1))* -(f.sum) } .first(5).map(&:first).map { |t, f| t }
+=end
+    kc = Hash.new { |h, k| h[k] = 0 }
+    dcss = Patient.where({}).map do |pt|
+      pt.date_content.each do |x|
+        x[3].split(/\./).each do |s|
+          if s.match?(/#{keyword}/)
+            s.split(/[\s]/).each do |w|
+              kc[w] += 1
+            end
+          end
+        end
+      end
+    end
+    keyword = kc.to_a.sort_by { |k, v| -v } .first(5).map(&:first)
     "These things might occur as result, relating to the keyword #{keyword}: " + res.join(', ') + ?.
   end
 
