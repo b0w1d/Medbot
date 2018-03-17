@@ -153,7 +153,7 @@ class Graph
   def is_useful?(word:)
     return 0 if word.size <= 1
     return 0 if word.match?(/[^a-zA-Z]/)
-    return 0 if %w(and with of he his him boy man male she her girl lady female ml dl mmol item and with of to for was on the mg time or is are they them their doctor hospital in no under below above status at days without).include?(word.downcase)
+    return 0 if %w(and with of he his him boy man male she her girl lady female ml dl mmol item and with of to for was on the mg time or is are they them their doctor hospital in no under below above status at days without between whole left right).include?(word.downcase)
     /[^a-zA-Z]/.match?(word) ? 0 : 1
   end
 
@@ -210,7 +210,7 @@ class LineGraph < Graph
   def initialize(message:, filter: {}, keyword:)
     @msg = message
     @filter = filter
-    xname = /(?:x\s*|axis|around)+\s*(?::|\-|upon|is|in|on|by|at|for|with|as|\s*)\s*([^\s]+)\s*/i.match(@msg)[1] rescue nil
+    xname = /(?:x\s*|axis|around)+\s*(?::|\-|upon|is|in|on|by|at|for|with|as|\s*)\s*([^\s]+)\s*/i.match(@msg.split(/[,.;]/).join(' ')[1]) rescue nil
     xname = Format.normalize_label(xname)
     return @error = "If you want to render a line graph, please also tell me which attribute the x-axis will be around. Note that for now only x for date is available." if xname.nil?
     xlabels = []
@@ -256,7 +256,7 @@ class BarGraph < Graph
   def initialize(message:, filter: {}, keyword:)
     @msg = message
     @filter = filter
-    xname = /(?:group|bar\s*|categorize|categorized|graph\s*)+\s*(?:by|on|\s*)\s*([^\s]+)\s*/i.match(@msg)[1] rescue nil
+    xname = /(?:group|bar\s*|categorize|categorized|graph\s*)+\s*(?:by|on|\s*)\s*([^\s]+)\s*/i.match(@msg.split(/[,.;]/).join(' ')[1]) rescue nil
     xname = Format.normalize_label(xname)
     return @error = "If you want to render a bar graph, please also tell me which attribute you want to categorize on. Note that for now only grouping by sex or age is available." if xname.nil?
     xlabels = []
