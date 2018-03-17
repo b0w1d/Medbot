@@ -210,7 +210,7 @@ class LineGraph < Graph
   def initialize(message:, filter: {}, keyword:)
     @msg = message
     @filter = filter
-    xname = /(?:x\s*|axis|around)+\s*(?::|\-|upon|is|in|on|by|at|for|with|as|\s*)\s*([^\s]+)\s*/i.match(@msg.split(/[,.;]/).join(' ')[1]) rescue nil
+    xname = /(?:x\s*|axis|around)+\s*(?::|\-|upon|is|in|on|by|at|for|with|as|\s*)\s*([^\s]+)\s*/i.match(@msg.split(/[,.;]/).join(' '))[1] rescue nil
     xname = Format.normalize_label(xname)
     return @error = "If you want to render a line graph, please also tell me which attribute the x-axis will be around. Note that for now only x for date is available." if xname.nil?
     xlabels = []
