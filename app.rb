@@ -256,7 +256,7 @@ class BarGraph < Graph
   def initialize(message:, filter: {}, keyword:)
     @msg = message
     @filter = filter
-    xname = /(?:group|bar\s*|categorize|categorized|graph\s*)+\s*(?:by|on|\s*)\s*([^\s]+)\s*/i.match(@msg.split(/[,.;]/).join(' ')[1]) rescue nil
+    xname = /(?:group|bar\s*|categorize|categorized|graph\s*)+\s*(?:by|on|\s*)\s*([^\s]+)\s*/i.match(@msg.split(/[,.;]/).join(' '))[1] rescue nil
     xname = Format.normalize_label(xname)
     return @error = "If you want to render a bar graph, please also tell me which attribute you want to categorize on. Note that for now only grouping by sex or age is available." if xname.nil?
     xlabels = []
