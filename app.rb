@@ -332,7 +332,7 @@ module Format
 
   def normalize_label(name)
     return nil if name.nil?
-    name = name.match(/[a-zA-Z]+/)
+    name = name.match(/[a-zA-Z]+/)[0]
     return :sex if %w(sex gender).include? name
     return :age if %w(age year old).include? name
     return :date if %w(time date day days).include? name
