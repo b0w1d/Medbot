@@ -433,7 +433,7 @@ e.g., "Term frequency pie chart, age between 50 to 60"
     reply_help_query ||= process_help_query
     return reply_help_query unless reply_help_query.nil?
 
-    return "I don't know what you are talking about. You can submit 'help' to know more about what I can do."
+    # return "I don't know what you are talking about. You can submit 'help' to know more about what I can do."
 
     # fallback by dialogflow
     
