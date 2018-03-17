@@ -414,8 +414,8 @@ usage:
 e.g., "Tell me what would happen as result, the keyword is cancer"
 
 - You can ask me to render a graph or table for term frequency analysis:
-e.g., "Term frequency table graph for male, age from 60 to 70. Keyword is PO"
-e.g., "Term frequency line graph where x is date, female, age 60 to 70"
+e.g., "Term frequency table graph for male, age from 60 to 70. "
+e.g., "Term frequency line graph where x is date, female, age 60 to 70. Keyword is PO"
 e.g., "Term frequency bar graph group by gender, keyword is aortic"
 e.g., "Term frequency pie chart, age between 50 to 60"
     EOS
@@ -434,7 +434,7 @@ e.g., "Term frequency pie chart, age between 50 to 60"
     reply_help_query ||= process_help_query
     return reply_help_query unless reply_help_query.nil?
 
-    # return "I don't know what you are talking about. You can submit 'help' to know more about what I can do."
+    return "I can't do that."
 
     # fallback by dialogflow
     
