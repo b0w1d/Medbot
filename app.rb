@@ -256,7 +256,7 @@ class BarGraph < Graph
   def initialize(message:, filter: {}, keyword:)
     @msg = message
     @filter = filter
-    xname = /(?:group|bar\s*|categorize|categorized|graph\s*)+\s*(?:by|on|\s*)\s*([^\s]+)\s*/i.match(@msg)[1] rescue nil
+    xname = /(?:group|bar\s*|categorize|categorized|graph\s*)(?:[,.;])+\s*(?:by|on|\s*)\s*([^\s]+)\s*/i.match(@msg)[1] rescue nil
     xname = Format.normalize_label(xname)
     return @error = "If you want to render a bar graph, please also tell me which attribute you want to categorize on. Note that for now only grouping by sex or age is available." if xname.nil?
     xlabels = []
@@ -414,9 +414,9 @@ usage:
 e.g., "Tell me what would happen as result, the keyword is cancer"
 
 - You can ask me to render a graph or table for term frequency analysis:
-e.g., "Term frequency table graph where x is date, for male, age from 60 to 70. Keyword is PO"
+e.g., "Term frequency table graph for male, age from 60 to 70. Keyword is PO"
 e.g., "Term frequency line graph where x is date, female, age 60 to 70"
-e.g., "Term frequency bar graph, group by gender, keyword is aortic"
+e.g., "Term frequency bar graph group by gender, keyword is aortic"
 e.g., "Term frequency pie chart, age between 50 to 60"
     EOS
   end
